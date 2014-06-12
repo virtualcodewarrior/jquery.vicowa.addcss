@@ -31,38 +31,53 @@
     }
 }(function($)
 {
-    $.addCSS = function(p_CSSPath)
-    {
-        var CSSPaths = ($.isArray(p_CSSPath)) ? p_CSSPath : [p_CSSPath],
-        addedCSS = [];
-        
-        $.each(CSSPaths, function(p_Index, p_Path)
-        {
-            // we will only have an added css if it was not already in there, else the original owner should remove it on destroy
-            var $newCSS = ($("link[href='" + p_Path + "']").length) ? null : $("<link/>", 
-            {
-               rel: "stylesheet",
-               type: "text/css",
-               href: p_Path
-            }).appendTo("head");
-            
-            if ($newCSS)
-            {
-                addedCSS.push($newCSS);
-            }
-        });
+	var Paths = {};
 
-        return {
-            // on destroy remove the css links that were added
-            destroy : function()
-            {
-                $.each(addedCSS, function(p_Index, $p_CSS)
-                {
-                    $p_CSS.remove();
-                });
-                addedCSS = [];
-            }
-        };
+	$.addCSS = function(p_CSSPath)
+    {
+		if (typeof p_CSSPath === "object")
+		{
+			// assume a configuration object
+			Paths = p_CSSPath.paths || {};
+		}
+		else
+		{
+			var CSSPaths = ($.isArray(p_CSSPath)) ? p_CSSPath : [p_CSSPath],
+			addedCSS = [];
+			
+			$.each(CSSPaths, function(p_Index, p_Path)
+			{
+				if (Paths[p_Path])
+				{
+					p_Path = Paths[p_Path];
+				}
+				
+				// we will only have an added css if it was not already in there, else the original owner should remove it on destroy
+				var $newCSS = ($("link[href='" + p_Path + "']").length) ? null : $("<link/>", 
+				{
+					rel: "stylesheet",
+					type: "text/css",
+					href: p_Path
+				}).appendTo("head");
+				
+				if ($newCSS)
+				{
+					addedCSS.push($newCSS);
+				}
+			});
+
+			return {
+				// on destroy remove the css links that were added
+				destroy : function()
+				{
+					$.each(addedCSS, function(p_Index, $p_CSS)
+					{
+						$p_CSS.remove();
+					});
+					addedCSS = [];
+				}
+			};
+		}
     };
 }));
 
